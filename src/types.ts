@@ -1,18 +1,18 @@
 /**
- * @property {number} phase Phase of the moon as a fraction
- * @property {number} pphase Illuminated fraction
- * @property {number} mage Age of moon in days
- * @property {number} dist Distance in kilometres
- * @property {number} angdia Angular diameter in degrees
- * @property {number} sudist Distance to sun
- * @property {number} suangdia Sun's angular diameter
+ * @property {number} moonPhase Phase of the moon as a fraction
+ * @property {number} moonIllumination Illuminated fraction
+ * @property {number} moonAgeInDays Age of moon in days
+ * @property {number} distanceInKm Distance in kilometres
+ * @property {number} angularDiameterInDeg Angular diameter in degrees
+ * @property {number} distanceToSun Distance to sun
+ * @property {number} sunAngularDiameter Sun's angular diameter
  */
 export type PhaseResult = {
-    phase: number;
-    pphase: number;
-    mage: number;
-    dist: number;
-    angdia: number;
-    sudist: number;
-    suangdia: number;
+    moonPhase: number;
+    moonIllumination: number;
+    moonAgeInDays: number;
+    distanceInKm: number;
+    angularDiameterInDeg: number;
+    distanceToSun: number;
+    sunAngularDiameter: number;
 }

@@ -1,4 +1,4 @@
-import { PhaseResult } from "./types"; 
+import { PhaseResult } from "./types";
 
 /* Astronomical constants */
 const epoch: number = 2444238.5;                // 1980 January 0.0
@@ -32,19 +32,43 @@ const epsilon: number = 0.000001;
 /*  Handy mathematical functions  */
 function sgn(x: number): number { return (((x) < 0) ? -1 : ((x) > 0 ? 1 : 0)) }             // Extract sign
 function abs(x: number): number { return ((x) < 0 ? (-(x)) : (x)) }                         // Absolute val
-function fixangle(a: number): number { return ((a) - 360.0 * (Math.floor((a) / 360.0))) }   // Fix angle   
-function torad(d: number): number { return ((d) * (PI / 180.0)) }                           // Deg->Rad    
-function todeg(d: number): number { return ((d) * (180.0 / PI)) }                           // Rad->Deg    
-function dsin(x: number): number { return (Math.sin(torad((x)))) }                          // Sin from deg
-function dcos(x: number): number { return (Math.cos(torad((x)))) }                          // Cos from deg
+function fixAngle(a: number): number { return ((a) - 360.0 * (Math.floor((a) / 360.0))) }   // Fix angle   
+function toRad(d: number): number { return ((d) * (PI / 180.0)) }                           // Deg->Rad    
+function toDeg(d: number): number { return ((d) * (180.0 / PI)) }                           // Rad->Deg    
+function dsin(x: number): number { return (Math.sin(toRad((x)))) }                          // Sin from deg
+function dcos(x: number): number { return (Math.cos(toRad((x)))) }                          // Cos from deg
 
 /**
  * Convert a Date to astronomica Julian time 
  * (i.e. Julian date plus day fraction, expressed as a double).
  * @param date 
  */
-function jtime(date: Date): number {
-    return utctoj(date);
+function toJulianTime(date: Date): number {
+
+    // Algorithm as given in Meeus, Astronomical Algorithms
+    let year: number,
+        month: number,
+        day: number,
+        hour: number,
+        minute: number,
+        second: number,
+        millisecond: number;
+
+    year = date.getFullYear();
+    month = date.getMonth() + 1;
+    day = date.getDate();
+    hour = date.getHours();
+    minute = date.getMinutes();
+    second = date.getSeconds();
+    millisecond = date.getMilliseconds();
+
+    let isjulian = isJulianDate(year, month, day);
+    let m: number = month > 2 ? month : month + 12;
+    let y: number = month > 2 ? year : year - 1;
+    let d: number = day + hour / 24.0 + minute / 1440.0 + (second + millisecond / 1000.0) / 86400.0;
+    let b: number = isjulian ? 0 : 2 - y / 100 + y / 100 / 4;
+
+    return Math.floor((365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + b - 1524.5);
 }
 
 /**
@@ -54,7 +78,7 @@ function jtime(date: Date): number {
  * @param month 
  * @param day 
  */
-function isjdate(year: number, month: number, day: number): boolean {
+function isJulianDate(year: number, month: number, day: number): boolean {
 
     // All dates prior to 1582 are in the Julian calendar
     if (year < 1582)
@@ -77,45 +101,6 @@ function isjdate(year: number, month: number, day: number): boolean {
                 throw "Any date in the range 10/5/1582 to 10/14/1582 is invalid!";
         }
     }
-}
-
-/**
- * Convert GMT date and time to astronomical Julian time 
- * (i.e. Julian date plus day fraction, expressed as a double).
- * https://stackoverflow.com/a/14554483/1837080
- * @param year 
- * @param mon 
- * @param mday 
- * @param hour 
- * @param min 
- * @param sec 
- */
-function utctoj(date: Date): number {
-
-    // Algorithm as given in Meeus, Astronomical Algorithms
-    let year: number,
-        month: number,
-        day: number,
-        hour: number,
-        minute: number,
-        second: number,
-        millisecond: number;
-
-    year = date.getFullYear();
-    month = date.getMonth() + 1;
-    day = date.getDate();
-    hour = date.getHours();
-    minute = date.getMinutes();
-    second = date.getSeconds();
-    millisecond = date.getMilliseconds();
-
-    let isjulian = isjdate(year, month, day);
-    let m: number = month > 2 ? month : month + 12;
-    let y: number = month > 2 ? year : year - 1;
-    let d: number = day + hour / 24.0 + minute / 1440.0 + (second + millisecond / 1000.0) / 86400.0;
-    let b: number = isjulian ? 0 : 2 - y / 100 + y / 100 / 4;
-
-    return Math.floor((365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + b - 1524.5);
 }
 
 /**
@@ -165,7 +150,7 @@ function jyear(td: number, yy: number, mm: number, dd: number): { year: number, 
  * @param m 
  * @param s 
  */
-function jhms(j: number, h: number, m: number, s: number): { hour: number, minute: number, second: number } {
+function jhms(j: number): { hour: number, minute: number, second: number } {
     let ij: number;
 
     j += 0.5;			                                        // Astronomical to civil
@@ -295,9 +280,7 @@ function truephase(k: number, phase: number): number {
 
     if (!apcor) {
         // exit nicely?
-        // MessageBox(hWndMain, rstring(IDS_ERR_TRUEPHASE),
-        // rstring(IDS_ERR_IERR), MB_ICONEXCLAMATION | MB_OK | MB_APPLMODAL);
-        // PostQuitMessage(1);
+        throw "Error calculating moon phase!";
     }
     return pt;
 }
@@ -349,7 +332,7 @@ function phasehunt(sdate: number, phases: number[]): number[] {
 function kepler(m: number, ecc: number): number {
     let e: number, delta: number;
 
-    m = torad(m);
+    m = toRad(m);
     e = m;
 
     do {
@@ -370,10 +353,10 @@ function kepler(m: number, ecc: number): number {
     subtended by the Moon as seen by an observer at the centre of the
     Earth.
 
- * @param {number} pdate
+ * @param {number} julianDate
  * @return {PhaseResult}
  */
-function phase(pdate: number): PhaseResult {
+function getMoonPhase(julianDate: number): PhaseResult {
     let Day: number,
         N: number,
         M: number,
@@ -407,73 +390,73 @@ function phase(pdate: number): PhaseResult {
         SunAng: number;
 
     /* Calculation of the Sun's position */
-    Day = pdate - epoch;                                                // Date within epoch
-    N = fixangle((360 / 365.2422) * Day);                               // Mean anomaly of the Sun
-    M = fixangle(N + elonge - elongp);                                  // Convert from perigee co-ordinates to epoch 1980.0
+    Day = julianDate - epoch;                                                // Date within epoch
+    N = fixAngle((360 / 365.2422) * Day);                               // Mean anomaly of the Sun
+    M = fixAngle(N + elonge - elongp);                                  // Convert from perigee co-ordinates to epoch 1980.0
 
     Ec = kepler(M, eccent);                                             // Solve equation of Kepler
     Ec = Math.sqrt((1 + eccent) / (1 - eccent)) * Math.tan(Ec / 2);
-    Ec = 2 * todeg(Math.atan(Ec));                                      // True anomaly
-    Lambdasun = fixangle(Ec + elongp);                                  // Sun's geocentric ecliptic longitude
+    Ec = 2 * toDeg(Math.atan(Ec));                                      // True anomaly
+    Lambdasun = fixAngle(Ec + elongp);                                  // Sun's geocentric ecliptic longitude
 
     /* Orbital distance factor */
-    F = ((1 + eccent * Math.cos(torad(Ec))) / (1 - eccent * eccent));
+    F = ((1 + eccent * Math.cos(toRad(Ec))) / (1 - eccent * eccent));
     SunDist = sunsmax / F;                                              // Distance to Sun in km
     SunAng = F * sunangsiz;                                             // Sun's angular size in degrees
 
     /* Calculation of the Moon's position */
 
     /* Moon's mean longitude */
-    ml = fixangle(13.1763966 * Day + mmlong);
+    ml = fixAngle(13.1763966 * Day + mmlong);
 
     /* Moon's mean anomaly */
-    MM = fixangle(ml - 0.1114041 * Day - mmlongp);
+    MM = fixAngle(ml - 0.1114041 * Day - mmlongp);
 
     /* Moon's ascending node mean longitude */
-    MN = fixangle(mlnode - 0.0529539 * Day);
+    MN = fixAngle(mlnode - 0.0529539 * Day);
 
     /* Evection */
-    Ev = 1.2739 * Math.sin(torad(2 * (ml - Lambdasun) - MM));
+    Ev = 1.2739 * Math.sin(toRad(2 * (ml - Lambdasun) - MM));
 
     /* Annual equation */
-    Ae = 0.1858 * Math.sin(torad(M));
+    Ae = 0.1858 * Math.sin(toRad(M));
 
     /* Correction term */
-    A3 = 0.37 * Math.sin(torad(M));
+    A3 = 0.37 * Math.sin(toRad(M));
 
     /* Corrected anomaly */
     MmP = MM + Ev - Ae - A3;
 
     /* Correction for the equation of the centre */
-    mEc = 6.2886 * Math.sin(torad(MmP));
+    mEc = 6.2886 * Math.sin(toRad(MmP));
 
     /* Another correction term */
-    A4 = 0.214 * Math.sin(torad(2 * MmP));
+    A4 = 0.214 * Math.sin(toRad(2 * MmP));
 
     /* Corrected longitude */
     lP = ml + Ev + mEc - Ae + A4;
 
     /* Variation */
-    V = 0.6583 * Math.sin(torad(2 * (lP - Lambdasun)));
+    V = 0.6583 * Math.sin(toRad(2 * (lP - Lambdasun)));
 
     /* True longitude */
     lPP = lP + V;
 
     /* Corrected longitude of the node */
-    NP = MN - 0.16 * Math.sin(torad(M));
+    NP = MN - 0.16 * Math.sin(toRad(M));
 
     /* Y inclination coordinate */
-    y = Math.sin(torad(lPP - NP)) * Math.cos(torad(minc));
+    y = Math.sin(toRad(lPP - NP)) * Math.cos(toRad(minc));
 
     /* X inclination coordinate */
-    x = Math.cos(torad(lPP - NP));
+    x = Math.cos(toRad(lPP - NP));
 
     /* Ecliptic longitude */
-    Lambdamoon = todeg(Math.atan2(y, x));
+    Lambdamoon = toDeg(Math.atan2(y, x));
     Lambdamoon += NP;
 
     /* Ecliptic latitude */
-    BetaM = todeg(Math.asin(Math.sin(torad(lPP - NP)) * Math.sin(torad(minc))));
+    BetaM = toDeg(Math.asin(Math.sin(toRad(lPP - NP)) * Math.sin(toRad(minc))));
 
     /* Calculation of the phase of the Moon */
 
@@ -481,12 +464,12 @@ function phase(pdate: number): PhaseResult {
     MoonAge = lPP - Lambdasun;
 
     /* Phase of the Moon */
-    MoonPhase = (1 - Math.cos(torad(MoonAge))) / 2;
+    MoonPhase = (1 - Math.cos(toRad(MoonAge))) / 2;
 
     /* Calculate distance of moon from the centre of the Earth */
 
     MoonDist = (msmax * (1 - mecc * mecc)) /
-        (1 + mecc * Math.cos(torad(MmP + mEc)));
+        (1 + mecc * Math.cos(toRad(MmP + mEc)));
 
     /* Calculate Moon's angular diameter */
 
@@ -498,20 +481,90 @@ function phase(pdate: number): PhaseResult {
     MoonPar = mparallax / MoonDFrac;
 
     return {
-        pphase: MoonPhase,
-        mage: synmonth * (fixangle(MoonAge) / 360.0),
-        dist: MoonDist,
-        angdia: MoonAng,
-        sudist: SunDist,
-        suangdia: SunAng,
-        phase: fixangle(MoonAge) / 360.0
+        moonIllumination: MoonPhase,
+        moonAgeInDays: synmonth * (fixAngle(MoonAge) / 360.0),
+        distanceInKm: MoonDist,
+        angularDiameterInDeg: MoonAng,
+        distanceToSun: SunDist,
+        sunAngularDiameter: SunAng,
+        moonPhase: fixAngle(MoonAge) / 360.0
     };
+}
+
+/**
+ * Get moon information on a given date
+ * @param date 
+ */
+function getMoonInfo(date: Date): PhaseResult {
+    if (typeof date === "undefined" || date === null)
+        return {
+            moonPhase: 0,
+            moonIllumination: 0,
+            moonAgeInDays: 0,
+            distanceInKm: 0,
+            angularDiameterInDeg: 0,
+            distanceToSun: 0,
+            sunAngularDiameter: 0
+        };
+
+    return getMoonPhase(toJulianTime(date));
+}
+
+/**
+ * Return the date of Easter for a given date (ie. year)
+ * @param date 
+ */
+function getEaster(date: Date): Date {
+    // Easter is on the first Sunday following a full
+    // moon after the vernal equinox
+
+    // Church recognizes the vernal equinox on March 21st;
+    // js date object's month is 0-based
+    let start = new Date(date.getFullYear(), 2, 21);
+
+    // Continue to calculate moon info, until we find the 
+    // first full moon after the vernal equinox
+    let fullMoon = start;
+    let previousMoonInfo;
+    let moonInfo;    
+    let gettingDarker = undefined;
+
+    do {
+        previousMoonInfo = getMoonInfo(fullMoon);
+        fullMoon.setDate(fullMoon.getDate() + 1);
+        moonInfo = getMoonInfo(fullMoon);
+
+        // Initially set if we must currently wait for the moon to grow dimmer,
+        // before it grows bright again for a full moon
+        if (typeof gettingDarker === "undefined"){
+            gettingDarker = moonInfo.moonIllumination < previousMoonInfo.moonIllumination;
+        } else if (gettingDarker && moonInfo.moonIllumination > previousMoonInfo.moonIllumination){
+            
+            // Once the moon has finished getting darker,
+            // change this variable so we can check that it continues to grow
+            // brighter (so we know when we've found our full moon)
+            gettingDarker = false;
+        }
+    } while(gettingDarker && moonInfo.moonIllumination < previousMoonInfo.moonIllumination ||
+            !gettingDarker && moonInfo.moonIllumination > previousMoonInfo.moonIllumination);
+
+    // We found a full moon, go back a day since
+    // we've gone 1 day too far
+    fullMoon.setDate(fullMoon.getDate() - 1);
+
+    // Find the next Sunday (Easter)
+    while (fullMoon.getDay() !== 0){
+        fullMoon.setDate(fullMoon.getDate() + 1);
+    }
+
+    return fullMoon;
 }
 
 // run
 let now = new Date();
-let jd = jtime(now);
+console.log(getEaster(now));
+let jd = toJulianTime(now);
 
-let result = phase(jd);
-console.log(result.pphase);
+let result = getMoonPhase(jd);
+console.log(result.moonIllumination);
 // validation https://www.moongiant.com/phase/09/24/2020
