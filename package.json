@@ -4,9 +4,10 @@
   "description": "",
   "type": "commonjs",
   "exports": {
-    "import": "./lib/index.mjs",
-    "require": "./lib/index.js",
-    "default": "./lib/index.mjs"
+    "import": "./dist/es2015/index.js",
+    "require": "./dist/cjs/index.js",
+    "node": "./dist/esm/index.js",
+    "default": "./dist/es2015/index.js"
   },
   "main": "index.js",
   "scripts": {

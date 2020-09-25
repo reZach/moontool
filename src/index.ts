@@ -514,3 +514,4 @@ let jd = jtime(now);
 
 let result = phase(jd);
 console.log(result.pphase);
+// validation https://www.moongiant.com/phase/09/24/2020
