@@ -1,0 +1,25 @@
+{
+  "name": "moontool",
+  "version": "0.0.1",
+  "description": "",
+  "type": "commonjs",
+  "exports": {
+    "import": "./lib/index.mjs",
+    "require": "./lib/index.js",
+    "default": "./lib/index.mjs"
+  },
+  "main": "index.js",
+  "scripts": {
+    "build": "npm run build:es2015 && npm run build:esm && npm run build:cjs",
+    "build:es2015": "npx tsc src/index.ts --module es2015 --target es2015 --outDir dist/es2015",
+    "build:esm": "npx tsc src/index.ts --module es2015 --target es5 --outDir dist/esm",
+    "build:cjs": "npx tsc src/index.ts --module commonjs --target es5 --outDir dist/cjs"
+  },
+  "keywords": [],
+  "author": "reZach",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^14.11.2",
+    "typescript": "^4.0.3"
+  }
+}
