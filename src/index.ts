@@ -1,4 +1,21 @@
-import { PhaseResult } from "./types";
+/**
+ * @property {number} moonPhase Phase of the moon as a fraction
+ * @property {number} moonIllumination Illuminated fraction
+ * @property {number} moonAgeInDays Age of moon in days
+ * @property {number} distanceInKm Distance in kilometres
+ * @property {number} angularDiameterInDeg Angular diameter in degrees
+ * @property {number} distanceToSun Distance to sun
+ * @property {number} sunAngularDiameter Sun's angular diameter
+ */
+type PhaseResult = {
+    moonPhase: number;
+    moonIllumination: number;
+    moonAgeInDays: number;
+    distanceInKm: number;
+    angularDiameterInDeg: number;
+    distanceToSun: number;
+    sunAngularDiameter: number;
+}
 
 /* Astronomical constants */
 const epoch: number = 2444238.5;                // 1980 January 0.0
@@ -495,7 +512,7 @@ function getMoonPhase(julianDate: number): PhaseResult {
  * Get moon information on a given date
  * @param date 
  */
-function getMoonInfo(date: Date): PhaseResult {
+export function getMoonInfo(date: Date): PhaseResult {
     if (typeof date === "undefined" || date === null)
         return {
             moonPhase: 0,
@@ -511,16 +528,16 @@ function getMoonInfo(date: Date): PhaseResult {
 }
 
 /**
- * Return the date of Easter for a given date (ie. year)
- * @param date 
+ * Return the date of Easter for a given year
+ * @param year
  */
-function getEaster(date: Date): Date {
+export function getEaster(year: number): Date {
     // Easter is on the first Sunday following a full
     // moon after the vernal equinox
 
     // Church recognizes the vernal equinox on March 21st;
     // js date object's month is 0-based
-    let start = new Date(date.getFullYear(), 2, 21);
+    let start = new Date(year, 2, 21);
 
     // Continue to calculate moon info, until we find the 
     // first full moon after the vernal equinox
@@ -559,12 +576,3 @@ function getEaster(date: Date): Date {
 
     return fullMoon;
 }
-
-// run
-let now = new Date();
-console.log(getEaster(now));
-let jd = toJulianTime(now);
-
-let result = getMoonPhase(jd);
-console.log(result.moonIllumination);
-// validation https://www.moongiant.com/phase/09/24/2020
