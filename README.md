@@ -33,12 +33,12 @@ getEaster(2020); // -> Sun Apr 12 2020
 ## Usage
 This package works both in CJS / ESM formats.
 ```javascript
-const moontool = require("moontool");
+const moontool = require("@mrspade/moontool");
 moontool.getEaster(2020);
 
 // or
 
-import { getMoonInfo } from "moontool";
+import { getMoonInfo } from "@mrspade/moontool";
 getMoonInfo(new Date());
 ```
 

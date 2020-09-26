@@ -1,6 +1,6 @@
 {
   "name": "@mrspade/moontool",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Get information about the moon",
   "type": "module",
   "exports": {
